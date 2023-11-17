@@ -287,6 +287,38 @@ static void idle_state_handle(void)
 
 
 /**
+    * @brief Function for updating the advertisement data.
+    *
+    * @details This function demonstrates how to change the data that is advertised by the Beacon.
+    *          You can modify this function to include the data that you want to advertise.
+    */
+void update_advertisement_data(const char *new_major_str, const char *new_minor_str)
+{
+    // Convert string representations of major and minor values to integers.
+    uint16_t new_major_value = atoi(new_major_str);
+    uint16_t new_minor_value = atoi(new_minor_str);
+
+#if defined(USE_UICR_FOR_MAJ_MIN_VALUES)
+    // Update the relevant data in m_beacon_info.
+    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO] = (uint8_t)(new_major_value >> 8);
+    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 1] = (uint8_t)new_major_value;
+
+    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 2] = (uint8_t)(new_minor_value >> 8);
+    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 3] = (uint8_t)new_minor_value;
+#endif
+
+    // Call the advertising_init function again to update the advertising data.
+    advertising_init();
+
+    // Stop the advertising.
+    sd_ble_gap_adv_stop(m_adv_handle);
+
+    // Start advertising with the updated data.
+    advertising_start();
+}
+
+
+/**
  * @brief Function for application main entry.
  */
 int main(void)
