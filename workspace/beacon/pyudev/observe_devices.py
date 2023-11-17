@@ -2,8 +2,6 @@
 
 import pyudev
 from time import sleep
-# import DeviceController
-
 
 verbose = True
 
@@ -21,75 +19,58 @@ def check_circuitpy(device):
     else:
         return False
 
-
 def check_serial(device):
-
     subsys = device.get('SUBSYSTEM')
     if subsys != None:
         if device.get('SUBSYSTEM') == 'tty':
-            """
-            if verbose:
-                print(f"  Serial device found at {device.device_node}")
-            """
             return True
 
     devname = device.get('DEVNAME')
     if devname != None:
         if device.get('DEVNAME').startswith('/dev/tty'):
-            if verbose:
-                print(f"  Serial device found at {device.device_node}")
             return True
 
     return False
 
-
-def check_nordic_dongle(action, device):
+def check_nordic_dongle(device):
     if check_serial(device):
-        if False:
-            event_details(action, device)
-        else:
-            if device.get('ID_VENDOR_ID') == '1915' and device.get('ID_MODEL_ID') == '521f':
-                if verbose:
-                    print(f"Nordic dongle found at {device.device_node}")
-                return True
+        if device.get('ID_VENDOR_ID') == '1915' and device.get('ID_MODEL_ID') == '521f':
+            if verbose:
+                print(f"Nordic dongle found at {device.device_node}")
+            return True
     return False
 
 def devname(device):
-    if device.get('DEVNAME') != None:
+    if device.get('DEVNAME') is not None:
         return device.get('DEVNAME')
     else:
         raise Exception("Device name not found")
 
 
+def device_recognizer(device):
+    if device is None:
+        raise Exception("Device is None")
+
+    if check_nordic_dongle(device):
+        print(f"Nordic dongle found at {devname(device)}")
+
+    if check_circuitpy(device):
+        print(devname(device))
 
 def handle_event(action, device):
-    """
-    if verbose:
-        print("\n")
-        print(f"{action} {device.device_node}")
-
-    """
-
     if device != None:
-        """
-        if verbose:
-            event_details(action, device)
+        device_recognizer(device)
 
-        if check_circuitpy(device):
-            # TODO: Track device name in a database
-            print(devname(device))
-
-        if check_serial(device):
-            # TODO: Track device name in a database
-            print(devname(device))
-        """
-
-        if check_nordic_dongle(action, device):
-            print(devname(device))
-
+def handle_existing_devices():
+    for device in context.list_devices():
+        if device is not None:
+            device_recognizer(device)
 
 # MAIN
 context = pyudev.Context()
+
+# Check for existing devices
+handle_existing_devices()
 
 # Monitor devices
 monitor = pyudev.Monitor.from_netlink(context)
@@ -101,3 +82,4 @@ try:
         sleep(1)
 except KeyboardInterrupt:
     observer.stop()
+
