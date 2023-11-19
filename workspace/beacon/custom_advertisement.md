@@ -3,10 +3,10 @@ Setting `USE_UICR_FOR_MAJ_MIN_VALUES` involves writing values to the User Inform
 To set `USE_UICR_FOR_MAJ_MIN_VALUES`, you need to follow these steps:
 
 1. **Install nrfjprog:**
-   Make sure you have the Nordic nrfjprog tool installed. You can download it from the Nordic Semiconductor website.
-
+   Make sure you have the JLinkARM from Segger and Nordic nrfjprog tool installed. You can download it from the Nordic Semiconductor website.
+   
 2. **Connect the Dongle:**
-   Ensure that your nRF52 Dongle is connected to your computer.
+   Ensure that your nRF52 Dongle is connected to your computer and press reset.
 
 3. **Find Serial Number:**
    Identify the serial number of your nRF52 Dongle. You can find it on the dongle or by using the following command:
@@ -14,10 +14,11 @@ To set `USE_UICR_FOR_MAJ_MIN_VALUES`, you need to follow these steps:
    ```bash
    nrfjprog -i
    ```
-
+   Alternatively find the serial number in the programming tool from NRF Connect. In this case its: `CD21B872F31E`
+   
 4. **Write to UICR:**
    Use the following command to write the major and minor values to the UICR:
-
+   
    ```bash
    nrfjprog --snr <Segger-chip-Serial-Number> --memwr 0x10001080 --val <your major/minor value>
    ```
@@ -32,6 +33,15 @@ To set `USE_UICR_FOR_MAJ_MIN_VALUES`, you need to follow these steps:
 
    Note: Ensure that you're using the correct serial number for your dongle.
 
+   I ran:
+   ```bash
+   $ nrfjprog --snr CD21B872F31E --memwr 0x10001080 --val 0xabcd0102 --log
+   ERROR: Argument provided has a wrong value. Memory access not aligned, value
+   ERROR: outside of range or similar.
+   ```
+   
+   See: https://devzone.nordicsemi.com/f/nordic-q-a/19912/nrfjprog-error-the-system-cant-find-the-file-specified
+   
 5. **Verify Settings:**
    You can verify that the values were written successfully by reading the UICR memory. Use the following command:
 

@@ -62,6 +62,11 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+// In use
+#include "../../components/ble/ble_advertising/ble_advertising.h"
+//#include "ble_advertising.h"
+#include <stdint.h>
+
 
 #define APP_BLE_CONN_CFG_TAG            1                                  /**< A tag identifying the SoftDevice BLE configuration. */
 
@@ -286,35 +291,18 @@ static void idle_state_handle(void)
 }
 
 
-/**
-    * @brief Function for updating the advertisement data.
-    *
-    * @details This function demonstrates how to change the data that is advertised by the Beacon.
-    *          You can modify this function to include the data that you want to advertise.
-    */
-void update_advertisement_data(const char *new_major_str, const char *new_minor_str)
+// Function for a simple busy-wait delay
+void simple_delay(uint32_t milliseconds)
 {
-    // Convert string representations of major and minor values to integers.
-    uint16_t new_major_value = atoi(new_major_str);
-    uint16_t new_minor_value = atoi(new_minor_str);
+    // Assuming a 1 MHz system clock. Adjust the value accordingly.
+    volatile uint32_t cycles = 1000 * milliseconds;
 
-#if defined(USE_UICR_FOR_MAJ_MIN_VALUES)
-    // Update the relevant data in m_beacon_info.
-    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO] = (uint8_t)(new_major_value >> 8);
-    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 1] = (uint8_t)new_major_value;
-
-    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 2] = (uint8_t)(new_minor_value >> 8);
-    m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO + 3] = (uint8_t)new_minor_value;
-#endif
-
-    // Call the advertising_init function again to update the advertising data.
-    advertising_init();
-
-    // Stop the advertising.
-    sd_ble_gap_adv_stop(m_adv_handle);
-
-    // Start advertising with the updated data.
-    advertising_start();
+    while (cycles--)
+    {
+        // This loop will take approximately 1 second with a 1 MHz system clock
+        // Adjust the loop duration based on your system clock frequency
+        __NOP();
+    }
 }
 
 
@@ -334,6 +322,22 @@ int main(void)
     // Start execution.
     NRF_LOG_INFO("Beacon example started.");
     advertising_start();
+
+
+    ble_advertising_t advertising;
+    ble_advdata_t advdata;
+    ble_advdata_t new_advdata;
+    ble_advdata_t scan_rsp_data;
+
+    while (true)
+    {
+        ret_code_t err_code = ble_advertising_advdata_update(&advertising, &advdata, &scan_rsp_data);
+        printf("Error code: %u\n", (unsigned int)err_code);
+        simple_delay(1000);
+        err_code = ble_advertising_advdata_update(&advertising, &new_advdata, &scan_rsp_data);
+        printf("Error code: %u\n", (unsigned int)err_code);
+        simple_delay(1000);
+    }
 
     // Enter main loop.
     for (;; )
