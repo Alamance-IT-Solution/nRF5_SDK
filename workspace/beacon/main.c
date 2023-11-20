@@ -305,6 +305,34 @@ void simple_delay(uint32_t milliseconds)
 }
 
 
+// Function to set up the BLE advertising data
+static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
+{
+    // Set the advertising flags
+    p_advdata->flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+
+    // Set the device name
+    p_advdata->name_type = BLE_ADVDATA_FULL_NAME;  // You can use BLE_ADVDATA_SHORT_NAME for a shorter name
+    // Adjust the short_name_len field accordingly if using short name
+
+    // Add additional data if needed, e.g., appearance, UUIDs, etc.
+    // Example: Set appearance data
+    p_advdata->include_appearance = true;
+    ble_uuid_t uuid_array[1] = {{0x180D}};
+    p_advdata->uuids_more_available.p_uuids = uuid_array;
+    p_advdata->uuids_more_available.uuid_cnt = 1;
+
+    // You can add more data as needed based on your application requirements
+
+    // Call the advertising data encoding function
+    ret_code_t err_code = ble_advdata_encode(p_advdata, NULL, NULL);
+    if (err_code != NRF_SUCCESS)
+    {
+        printf("Error encoding advertising data. Error code: %u\n", (unsigned int)err_code);
+    }
+}
+
+
 /**
  * @brief Function for application main entry.
  */
@@ -319,6 +347,9 @@ int main(void)
     advertising_init();
 
 
+    bsp_board_init(BSP_INIT_LEDS);
+    app_timer_init();
+    nrf_sdh_enable_request();
 
     ble_advertising_t advertising;
     ble_advertising_init_t advertising_init_data;
@@ -336,17 +367,50 @@ int main(void)
 
 
     ble_advdata_t advdata;
-    ble_advdata_t new_advdata;
     ble_advdata_t scan_rsp_data;
+
+    setup_ble_advertisement_data(&advdata);
+
+    bsp_board_led_on(BSP_BOARD_LED_1);
+
+    // Create a one element array containing a compound literal (object) with the UUID field set to 0x180F
+    ble_uuid_t new_uuid[1] = {{.uuid = 0x180F}};
+    // See: NRF5_SDK/components/softdevice/s122/headers/ble_types.h:ble_uuid_t
+    // See: NRF5_SDK/components/ble/common/ble_advdata.h:ble_advdata_uuid_list_t
+    // See: NRF5_SDK/components/ble/common/ble_advdata.h:ble_advdata_t
 
     while (true)
     {
+        // Update the advertising data periodically (every 5 seconds in this example)
         ret_code_t err_code = ble_advertising_advdata_update(&advertising, &advdata, &scan_rsp_data);
         printf("Error code: %u\n", (unsigned int)err_code);
-        simple_delay(1000);
-        err_code = ble_advertising_advdata_update(&advertising, &new_advdata, &scan_rsp_data);
+        simple_delay(5000);
+
+        advdata.include_appearance = false;  // Appearance represents physical shape and role of the device
+        new_uuid[0] = (ble_uuid_t){.uuid = 0x180F};  // Update the UUID value
+
+        // A list of UUIDs that don't fit into the main advertising UUID
+        advdata.uuids_more_available.p_uuids = new_uuid;
+
+        // The number of UUIDs in the list
+        advdata.uuids_more_available.uuid_cnt = 1;
+        bsp_board_led_off(BSP_BOARD_LED_1);
+
+        // Update the advertising data again
+        err_code = ble_advertising_advdata_update(&advertising, &advdata, &scan_rsp_data);
         printf("Error code: %u\n", (unsigned int)err_code);
-        simple_delay(1000);
+        simple_delay(5000);
+
+        advdata.include_appearance = false;  // Appearance represents physical shape and role of the device
+        new_uuid[0] = (ble_uuid_t){.uuid = 0x090E};  // Update the UUID value
+
+        // A list of UUIDs that don't fit into the main advertising UUID
+        advdata.uuids_more_available.p_uuids = new_uuid;
+        bsp_board_led_on(BSP_BOARD_LED_1);
+
+        // The number of UUIDs in the list
+        advdata.uuids_more_available.uuid_cnt = 1;
+
     }
 
     // Enter main loop.
