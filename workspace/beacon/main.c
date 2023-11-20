@@ -47,10 +47,12 @@
  * This file contains the source code for an Beacon transmitter sample application.
  */
 
+
 #include <stdbool.h>
 #include <stdint.h>
 #include "nordic_common.h"
 #include "bsp.h"
+#include "boards.h"
 #include "nrf_soc.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -90,11 +92,12 @@
 #define UICR_ADDRESS                    0x10001080                         /**< Address of the UICR register used by this example. The major and minor versions to be encoded into the advertising data will be picked up from this location. */
 #endif
 
-static ble_gap_adv_params_t m_adv_params;                                  /**< Parameters to be passed to the stack when starting advertising. */
-static uint8_t              m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET; /**< Advertising handle used to identify an advertising set. */
-static uint8_t              m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];  /**< Buffer for storing an encoded advertising set. */
+/**static ble_gap_adv_params_t m_adv_params;**/                                  /**< Parameters to be passed to the stack when starting advertising. */
+/**static uint8_t              m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;**/ /**< Advertising handle used to identify an advertising set. */
+/**static uint8_t              m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];**/  /**< Buffer for storing an encoded advertising set. */
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
+/**
 static ble_gap_adv_data_t m_adv_data =
 {
     .adv_data =
@@ -109,9 +112,11 @@ static ble_gap_adv_data_t m_adv_data =
 
     }
 };
+**/
 
-
-static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH] =                    /**< Information advertised by the Beacon. */
+/**< Information advertised by the Beacon. */
+/**
+static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH] =
 {
     APP_DEVICE_TYPE,     // Manufacturer specific information. Specifies the device type in this
                          // implementation.
@@ -123,6 +128,7 @@ static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH] =                    /**< I
     APP_MEASURED_RSSI    // Manufacturer specific information. The Beacon's measured TX power in
                          // this implementation.
 };
+**/
 
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -146,6 +152,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
  */
+ /**
 static void advertising_init(void)
 {
     uint32_t      err_code;
@@ -203,10 +210,11 @@ static void advertising_init(void)
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &m_adv_params);
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for starting advertising.
  */
+ /**
 static void advertising_start(void)
 {
     ret_code_t err_code;
@@ -217,12 +225,13 @@ static void advertising_start(void)
     err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for initializing the BLE stack.
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
  */
+ /**
 static void ble_stack_init(void)
 {
     ret_code_t err_code;
@@ -240,9 +249,10 @@ static void ble_stack_init(void)
     err_code = nrf_sdh_ble_enable(&ram_start);
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for initializing logging. */
+/**
 static void log_init(void)
 {
     ret_code_t err_code = NRF_LOG_INIT(NULL);
@@ -250,37 +260,42 @@ static void log_init(void)
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 }
+**/
 
 /**@brief Function for initializing LEDs. */
+/**
 static void leds_init(void)
 {
     ret_code_t err_code = bsp_init(BSP_INIT_LEDS, NULL);
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for initializing timers. */
+/**
 static void timers_init(void)
 {
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for initializing power management.
  */
+ /**
 static void power_management_init(void)
 {
     ret_code_t err_code;
     err_code = nrf_pwr_mgmt_init();
     APP_ERROR_CHECK(err_code);
 }
-
+**/
 
 /**@brief Function for handling the idle state (main loop).
  *
  * @details If there is no pending log operation, then sleep until next the next event occurs.
  */
+/**
 static void idle_state_handle(void)
 {
     if (NRF_LOG_PROCESS() == false)
@@ -288,7 +303,7 @@ static void idle_state_handle(void)
         nrf_pwr_mgmt_run();
     }
 }
-
+**/
 
 // Function for a simple busy-wait delay
 void simple_delay(uint32_t milliseconds)
@@ -304,7 +319,7 @@ void simple_delay(uint32_t milliseconds)
     }
 }
 
-
+/**
 // Function to set up the BLE advertising data
 static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
 {
@@ -331,13 +346,32 @@ static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
         printf("Error encoding advertising data. Error code: %u\n", (unsigned int)err_code);
     }
 }
-
+**/
 
 /**
  * @brief Function for application main entry.
  */
 int main(void)
 {
+
+    // For LED
+    bsp_board_init(BSP_INIT_LEDS);
+    app_timer_init();
+    nrf_sdh_enable_request();
+
+    // Our device is pca10059, not pca10056!
+    while (true)
+    {
+        bsp_board_led_on(BSP_BOARD_LED_1);
+        simple_delay(5000);
+        bsp_board_led_off(BSP_BOARD_LED_1);
+        simple_delay(5000);
+
+    }
+
+
+    /**
+
     // Initialize.
     log_init();
     timers_init();
@@ -345,11 +379,6 @@ int main(void)
     power_management_init();
     ble_stack_init();
     advertising_init();
-
-
-    bsp_board_init(BSP_INIT_LEDS);
-    app_timer_init();
-    nrf_sdh_enable_request();
 
     ble_advertising_t advertising;
     ble_advertising_init_t advertising_init_data;
@@ -365,7 +394,9 @@ int main(void)
     NRF_LOG_INFO("Beacon example started.");
     advertising_start();
 
+    **/
 
+    /**
     ble_advdata_t advdata;
     ble_advdata_t scan_rsp_data;
 
@@ -412,12 +443,8 @@ int main(void)
         advdata.uuids_more_available.uuid_cnt = 1;
 
     }
+    **/
 
-    // Enter main loop.
-    for (;; )
-    {
-        idle_state_handle();
-    }
 }
 
 
