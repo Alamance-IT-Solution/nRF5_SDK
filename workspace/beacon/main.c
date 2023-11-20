@@ -63,8 +63,7 @@
 #include "nrf_log_default_backends.h"
 
 // In use
-#include "../../components/ble/ble_advertising/ble_advertising.h"
-//#include "ble_advertising.h"
+#include "ble_advertising.h"
 #include <stdint.h>
 
 
@@ -319,12 +318,23 @@ int main(void)
     ble_stack_init();
     advertising_init();
 
+
+
+    ble_advertising_t advertising;
+    ble_advertising_init_t advertising_init_data;
+    uint32_t err_code = ble_advertising_init(&advertising, &advertising_init_data);
+    if (err_code != NRF_SUCCESS)
+    {
+        printf("Error initializing advertising: %u\n", (unsigned int)err_code);
+        // Handle error accordingly.
+    }
+
+
     // Start execution.
     NRF_LOG_INFO("Beacon example started.");
     advertising_start();
 
 
-    ble_advertising_t advertising;
     ble_advdata_t advdata;
     ble_advdata_t new_advdata;
     ble_advdata_t scan_rsp_data;

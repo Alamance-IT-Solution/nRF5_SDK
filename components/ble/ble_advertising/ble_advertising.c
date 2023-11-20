@@ -38,6 +38,7 @@
  *
  */
 #include  "sdk_common.h"
+// Enable this in $(PATH_TO_MAKE_FILE)/../config/sdk_config.h
 #if NRF_MODULE_ENABLED(BLE_ADVERTISING)
 #include "ble_advdata.h"
 #include "ble_advertising.h"
