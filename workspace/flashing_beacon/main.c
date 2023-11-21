@@ -3,7 +3,7 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "ble_advdata.h"
-
+#include "ble_advertising.h"
 
 
 /**< A tag identifying the SoftDevice BLE configuration. */
@@ -200,6 +200,15 @@ int main(void)
     bsp_board_init(BSP_INIT_LEDS);
     ble_stack_init();
     advertising_init();
+
+    ble_advertising_t advertising;
+    ble_advertising_init_t advertising_init_data;
+    uint32_t err_code = ble_advertising_init(&advertising, &advertising_init_data);
+    if (err_code != NRF_SUCCESS)
+    {
+        printf("Error initializing advertising: %u\n", (unsigned int)err_code);
+        // Handle error accordingly.
+    }
 
     // Start execution.
     advertising_start();
