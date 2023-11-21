@@ -1,3 +1,4 @@
+#include "bsp.h"
 #include "boards.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
@@ -176,6 +177,21 @@ static void advertising_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+
+/**@brief Function for starting advertising.
+ */
+static void advertising_start(void)
+{
+    ret_code_t err_code;
+
+    err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
+    APP_ERROR_CHECK(err_code);
+}
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -184,6 +200,9 @@ int main(void)
     bsp_board_init(BSP_INIT_LEDS);
     ble_stack_init();
     advertising_init();
+
+    // Start execution.
+    advertising_start();
 
     // Our device is pca10059, not pca10056!
     while (true)
