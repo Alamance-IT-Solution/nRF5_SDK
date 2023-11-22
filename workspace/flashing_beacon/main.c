@@ -36,14 +36,14 @@
 #define DEAD_BEEF                       0xDEADBEEF                         /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 #define ADVERTISE_DURATION              1000
 
-#if defined(USE_UICR_FOR_MAJ_MIN_VALUES)
 #define MAJ_VAL_OFFSET_IN_BEACON_INFO   18                                 /**< Position of the MSB of the Major Value in m_beacon_info array. */
+#if defined(USE_UICR_FOR_MAJ_MIN_VALUES)
 #define UICR_ADDRESS                    0x10001080                         /**< Address of the UICR register used by this example. The major and minor versions to be encoded into the advertising data will be picked up from this location. */
 #endif
 
 BLE_TPS_DEF(m_tps);                                     /**< TX Power service instance. */
 
-enum Alarm_t {ALARM_0, ALARM_1, NUM_ALARMS};
+typedef enum {ALARM_0, ALARM_1, NUM_ALARMS} Alarm_t;
 
 /**< Parameters to be passed to the stack when starting advertising. */
 static ble_gap_adv_params_t m_adv_params;
@@ -140,9 +140,29 @@ static void ble_stack_init(void)
 
 /**@brief Function for starting advertising.
  */
-static void advertising_start(void)
+static void advertising_start(Alarm_t alarm)
 {
     ret_code_t err_code;
+
+    { // Build and set advertising data.
+        ble_advdata_manuf_data_t manuf_specific_data;
+        manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
+        manuf_specific_data.data.p_data = (uint8_t *) m_beacon_info;
+        m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO] = (uint8_t)alarm; // encode alarm type using APP_MAJOR_VALUE
+        manuf_specific_data.data.size   = APP_BEACON_INFO_LENGTH;
+
+        ble_advdata_t advdata;
+        memset(&advdata, 0, sizeof(advdata));
+        advdata.name_type             = BLE_ADVDATA_NO_NAME;
+        advdata.flags                 = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+        advdata.p_manuf_specific_data = &manuf_specific_data;
+
+        err_code = ble_advdata_encode(&advdata, m_adv_data[alarm].adv_data.p_data, &m_adv_data[alarm].adv_data.len);
+        APP_ERROR_CHECK(err_code);
+    }
+
+    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data[alarm], NULL /* advertising parameters already set */);
+    APP_ERROR_CHECK(err_code);
 
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     APP_ERROR_CHECK(err_code);
@@ -243,25 +263,9 @@ void on_adv_evt(ble_adv_evt_t ble_adv_evt)
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
  */
-static void advertising_init(void)
+static void setup_ble_advertising_parameters(void)
 {
-    uint32_t      err_code;
-    ble_advdata_t advdata;
-
-    ble_advdata_manuf_data_t manuf_specific_data;
-    manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
-    manuf_specific_data.data.p_data = (uint8_t *) m_beacon_info;
-    manuf_specific_data.data.size   = APP_BEACON_INFO_LENGTH;
-
-    // Build and set advertising data.
-    memset(&advdata, 0, sizeof(advdata));
-
-    advdata.name_type             = BLE_ADVDATA_NO_NAME;
-    advdata.flags                 = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    advdata.p_manuf_specific_data = &manuf_specific_data;
-
-    err_code = ble_advdata_encode(&advdata, m_adv_data[ALARM_0].adv_data.p_data, &m_adv_data[ALARM_0].adv_data.len);
-    APP_ERROR_CHECK(err_code);
+    uint32_t err_code;
 
     // Initialize advertising parameters (used when starting advertising).
     memset(&m_adv_params, 0, sizeof(m_adv_params));
@@ -272,7 +276,7 @@ static void advertising_init(void)
     m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
     m_adv_params.duration        = ADVERTISE_DURATION;       // Advertising duration in 10 ms units.
 
-    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data[ALARM_0], &m_adv_params);
+    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, NULL /* no advertising data yet */, &m_adv_params);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -301,12 +305,11 @@ int main(void)
     // Initialize.
     bsp_board_init(BSP_INIT_LEDS);
     ble_stack_init();
-    advertising_init();
+    setup_ble_advertising_parameters();
     tps_init();
 
-
     // Start execution.
-    advertising_start();
+    advertising_start(ALARM_0);
 
     /**
     ble_advdata_t advdata;
