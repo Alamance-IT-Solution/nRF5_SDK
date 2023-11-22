@@ -22,7 +22,7 @@
 #define APP_DEVICE_TYPE                 0x02                               /**< 0x02 refers to Beacon. */
 #define APP_MEASURED_RSSI               0xC3                               /**< The Beacon's measured RSSI at 1 meter distance in dBm. */
 #define APP_COMPANY_IDENTIFIER          0x0059                             /**< Company identifier for Nordic Semiconductor ASA. as per www.bluetooth.org. */
-#define APP_MAJOR_VALUE                 0x84, 0x21                         /**< Major value used to identify Beacons. */
+#define APP_MAJOR_VALUE                 0x42, 0x42                         /**< Major value used to identify Beacons. */
 #define APP_MINOR_VALUE                 0x03, 0x04                         /**< Minor value used to identify Beacons. */
 #define APP_BEACON_UUID                 0x01, 0x12, 0x23, 0x34, \
                                         0x45, 0x56, 0x67, 0x78, \
@@ -30,6 +30,7 @@
                                         0xcd, 0xde, 0xef, 0xf0            /**< Proprietary UUID for Beacon. */
 
 #define TX_POWER_LEVEL                  (4)                               /**< TX Power Level value. This will be set both in the TX Power service, in the advertising data, and also used to set the radio transmit power. */
+// #define TX_POWER_LEVEL                  (-40)                               /**< TX Power Level value. This will be set both in the TX Power service, in the advertising data, and also used to set the radio transmit power. */
 
 
 #define DEAD_BEEF                       0xDEADBEEF                         /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
