@@ -191,6 +191,7 @@ static void advertising_start(void)
     APP_ERROR_CHECK(err_code);
 }
 
+/**
 // Function to set up the BLE advertising data
 static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
 {
@@ -198,17 +199,14 @@ static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
     p_advdata->flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     // Set the device name
-    p_advdata->name_type = BLE_ADVDATA_FULL_NAME;  // You can use BLE_ADVDATA_SHORT_NAME for a shorter name
+    p_advdata->name_type = BLE_ADVDATA_FULL_NAME;
     // Adjust the short_name_len field accordingly if using short name
 
     // Add additional data if needed, e.g., appearance, UUIDs, etc.
-    // Example: Set appearance data
     p_advdata->include_appearance = true;
     ble_uuid_t uuid_array[1] = {{0x180D}};
     p_advdata->uuids_more_available.p_uuids = uuid_array;
     p_advdata->uuids_more_available.uuid_cnt = 1;
-
-    // You can add more data as needed based on your application requirements
 
     // Call the advertising data encoding function
     ret_code_t err_code = ble_advdata_encode(p_advdata, NULL, NULL);
@@ -217,7 +215,7 @@ static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
         printf("Error encoding advertising data. Error code: %u\n", (unsigned int)err_code);
     }
 }
-
+**/
 
 /**@brief Function for application main entry.
  */
@@ -243,6 +241,7 @@ int main(void)
     ble_advdata_t advdata;
     ble_advdata_t scan_rsp_data;
 
+    /**
     setup_ble_advertisement_data(&advdata);
 
     bsp_board_led_on(BSP_BOARD_LED_1);
@@ -286,5 +285,6 @@ int main(void)
         advdata.uuids_more_available.uuid_cnt = 1;
 
     }
+    **/
 }
 
