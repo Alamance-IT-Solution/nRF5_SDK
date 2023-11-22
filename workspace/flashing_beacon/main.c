@@ -232,8 +232,6 @@ static void advertising_init(void)
 {
     uint32_t      err_code;
     ble_advdata_t advdata;
-    // uint8_t       flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
-    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     ble_advdata_manuf_data_t manuf_specific_data;
 
@@ -246,7 +244,7 @@ static void advertising_init(void)
     memset(&advdata, 0, sizeof(advdata));
 
     advdata.name_type             = BLE_ADVDATA_NO_NAME;
-    advdata.flags                 = flags;
+    advdata.flags                 = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
     // Initialize advertising parameters (used when starting advertising).
