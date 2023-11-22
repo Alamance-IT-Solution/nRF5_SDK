@@ -281,6 +281,7 @@ static void tps_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+
 /**@brief Function for application main entry.
  */
 int main(void)
