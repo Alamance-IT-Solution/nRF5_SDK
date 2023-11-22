@@ -43,13 +43,14 @@
 
 BLE_TPS_DEF(m_tps);                                     /**< TX Power service instance. */
 
+enum Alarm_t {ALARM_0, ALARM_1, NUM_ALARMS};
 
 /**< Parameters to be passed to the stack when starting advertising. */
 static ble_gap_adv_params_t m_adv_params;
 /**< Advertising handle used to identify an advertising set. */
 static uint8_t              m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
 /**< Buffer for storing an encoded advertising set. */
-static uint8_t              m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];
+static uint8_t              m_enc_advdata[NUM_ALARMS][BLE_GAP_ADV_SET_DATA_SIZE_MAX];
 
 
 /**< Information advertised by the Beacon. */
@@ -68,19 +69,33 @@ static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH] =
 
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
-static ble_gap_adv_data_t m_adv_data =
-{
-    .adv_data =
-    {
-        .p_data = m_enc_advdata,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
-    },
-    .scan_rsp_data =
-    {
-        .p_data = NULL,
-        .len    = 0
+static ble_gap_adv_data_t m_adv_data[NUM_ALARMS] = {
+  { // ALARM_0
+      .adv_data =
+      {
+          .p_data = m_enc_advdata[ALARM_0],
+          .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+      },
+      .scan_rsp_data =
+      {
+          .p_data = NULL,
+          .len    = 0
 
-    }
+      }
+  },
+  { // ALARM_1
+      .adv_data =
+      {
+          .p_data = m_enc_advdata[ALARM_1],
+          .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+      },
+      .scan_rsp_data =
+      {
+          .p_data = NULL,
+          .len    = 0
+
+      }
+  }
 };
 
 
@@ -245,7 +260,7 @@ static void advertising_init(void)
     advdata.flags                 = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
-    err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
+    err_code = ble_advdata_encode(&advdata, m_adv_data[ALARM_0].adv_data.p_data, &m_adv_data[ALARM_0].adv_data.len);
     APP_ERROR_CHECK(err_code);
 
     // Initialize advertising parameters (used when starting advertising).
@@ -257,7 +272,7 @@ static void advertising_init(void)
     m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
     m_adv_params.duration        = ADVERTISE_DURATION;       // Advertising duration in 10 ms units.
 
-    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &m_adv_params);
+    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data[ALARM_0], &m_adv_params);
     APP_ERROR_CHECK(err_code);
 }
 
