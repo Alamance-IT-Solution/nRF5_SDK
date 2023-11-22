@@ -4,6 +4,7 @@
 #include "nrf_sdh_ble.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
+#include "ble_tps.h"
 
 
 /**< A tag identifying the SoftDevice BLE configuration. */
@@ -28,6 +29,9 @@
                                         0x89, 0x9a, 0xab, 0xbc, \
                                         0xcd, 0xde, 0xef, 0xf0            /**< Proprietary UUID for Beacon. */
 
+#define TX_POWER_LEVEL                  (4)                               /**< TX Power Level value. This will be set both in the TX Power service, in the advertising data, and also used to set the radio transmit power. */
+
+
 #define DEAD_BEEF                       0xDEADBEEF                         /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 #define ADVERTISE_DURATION              1000
 
@@ -35,6 +39,8 @@
 #define MAJ_VAL_OFFSET_IN_BEACON_INFO   18                                 /**< Position of the MSB of the Major Value in m_beacon_info array. */
 #define UICR_ADDRESS                    0x10001080                         /**< Address of the UICR register used by this example. The major and minor versions to be encoded into the advertising data will be picked up from this location. */
 #endif
+
+BLE_TPS_DEF(m_tps);                                     /**< TX Power service instance. */
 
 
 /**< Parameters to be passed to the stack when starting advertising. */
@@ -259,7 +265,21 @@ static void advertising_init(void)
 }
 
 
+/**@brief Function for initializing the TX Power Service.
+ */
+static void tps_init(void)
+{
+    ret_code_t     err_code;
+    ble_tps_init_t tps_init_obj;
 
+    memset(&tps_init_obj, 0, sizeof(tps_init_obj));
+    tps_init_obj.initial_tx_power_level = TX_POWER_LEVEL;
+
+    tps_init_obj.tpl_rd_sec = SEC_JUST_WORKS;
+
+    err_code = ble_tps_init(&m_tps, &tps_init_obj);
+    APP_ERROR_CHECK(err_code);
+}
 
 /**@brief Function for application main entry.
  */
@@ -269,6 +289,7 @@ int main(void)
     bsp_board_init(BSP_INIT_LEDS);
     ble_stack_init();
     advertising_init();
+    tps_init();
 
 
     // Start execution.
