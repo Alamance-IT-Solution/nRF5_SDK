@@ -234,9 +234,7 @@ static void advertising_init(void)
     ble_advdata_t advdata;
 
     ble_advdata_manuf_data_t manuf_specific_data;
-
     manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
-
     manuf_specific_data.data.p_data = (uint8_t *) m_beacon_info;
     manuf_specific_data.data.size   = APP_BEACON_INFO_LENGTH;
 
@@ -247,6 +245,9 @@ static void advertising_init(void)
     advdata.flags                 = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
+    err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
+    APP_ERROR_CHECK(err_code);
+
     // Initialize advertising parameters (used when starting advertising).
     memset(&m_adv_params, 0, sizeof(m_adv_params));
 
@@ -255,9 +256,6 @@ static void advertising_init(void)
     m_adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
     m_adv_params.duration        = ADVERTISE_DURATION;       // Advertising duration in 10 ms units.
-
-    err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
-    APP_ERROR_CHECK(err_code);
 
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &m_adv_params);
     APP_ERROR_CHECK(err_code);
