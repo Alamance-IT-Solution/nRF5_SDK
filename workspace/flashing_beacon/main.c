@@ -21,7 +21,7 @@
 #define APP_DEVICE_TYPE                 0x02                               /**< 0x02 refers to Beacon. */
 #define APP_MEASURED_RSSI               0xC3                               /**< The Beacon's measured RSSI at 1 meter distance in dBm. */
 #define APP_COMPANY_IDENTIFIER          0x0059                             /**< Company identifier for Nordic Semiconductor ASA. as per www.bluetooth.org. */
-#define APP_MAJOR_VALUE                 0x84, 0x24                         /**< Major value used to identify Beacons. */
+#define APP_MAJOR_VALUE                 0x84, 0x21                         /**< Major value used to identify Beacons. */
 #define APP_MINOR_VALUE                 0x03, 0x04                         /**< Minor value used to identify Beacons. */
 #define APP_BEACON_UUID                 0x01, 0x12, 0x23, 0x34, \
                                         0x45, 0x56, 0x67, 0x78, \
@@ -248,7 +248,7 @@ static void advertising_init(void)
     m_adv_params.p_peer_addr     = NULL;    // Undirected advertisement.
     m_adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
-    m_adv_params.duration        = 0;       // Never time out.
+    m_adv_params.duration        = 1000;       // Advertising duration in 10 ms units.
 
     err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
     APP_ERROR_CHECK(err_code);
