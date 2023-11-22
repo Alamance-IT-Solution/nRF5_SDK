@@ -122,6 +122,28 @@ static void ble_stack_init(void)
 }
 
 
+/**@brief Function for initializing the Advertising functionality.
+ *
+ * @details Encodes the required advertising data and passes it to the stack.
+ *          Also builds a structure to be passed to the stack when starting advertising.
+ */
+static void setup_ble_advertising_parameters(void)
+{
+    uint32_t err_code;
+
+    // Initialize advertising parameters (used when starting advertising).
+    memset(&m_adv_params, 0, sizeof(m_adv_params));
+
+    m_adv_params.properties.type = BLE_GAP_ADV_TYPE_NONCONNECTABLE_NONSCANNABLE_UNDIRECTED;
+    m_adv_params.p_peer_addr     = NULL;    // Undirected advertisement.
+    m_adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
+    m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
+    m_adv_params.duration        = ADVERTISE_DURATION;       // Advertising duration in 10 ms units.
+
+    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, NULL /* no advertising data yet */, &m_adv_params);
+    APP_ERROR_CHECK(err_code);
+}
+
 
 /**@brief Function for starting advertising.
  */
@@ -242,28 +264,6 @@ void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     }
 }
 **/
-
-/**@brief Function for initializing the Advertising functionality.
- *
- * @details Encodes the required advertising data and passes it to the stack.
- *          Also builds a structure to be passed to the stack when starting advertising.
- */
-static void setup_ble_advertising_parameters(void)
-{
-    uint32_t err_code;
-
-    // Initialize advertising parameters (used when starting advertising).
-    memset(&m_adv_params, 0, sizeof(m_adv_params));
-
-    m_adv_params.properties.type = BLE_GAP_ADV_TYPE_NONCONNECTABLE_NONSCANNABLE_UNDIRECTED;
-    m_adv_params.p_peer_addr     = NULL;    // Undirected advertisement.
-    m_adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
-    m_adv_params.interval        = NON_CONNECTABLE_ADV_INTERVAL;
-    m_adv_params.duration        = ADVERTISE_DURATION;       // Advertising duration in 10 ms units.
-
-    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, NULL /* no advertising data yet */, &m_adv_params);
-    APP_ERROR_CHECK(err_code);
-}
 
 
 /**@brief Function for initializing the TX Power Service.
