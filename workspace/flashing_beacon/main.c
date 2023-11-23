@@ -311,6 +311,10 @@ int main(void)
     // Start execution.
     advertising_start(ALARM_0);
 
+    while (true) {
+
+    }
+
     /**
     ble_advdata_t advdata;
     ble_advdata_t scan_rsp_data;
