@@ -22,7 +22,7 @@
 #define APP_DEVICE_TYPE                 0x02                               /**< 0x02 refers to Beacon. */
 #define APP_MEASURED_RSSI               0xC3                               /**< The Beacon's measured RSSI at 1 meter distance in dBm. */
 #define APP_COMPANY_IDENTIFIER          0x0059                             /**< Company identifier for Nordic Semiconductor ASA. as per www.bluetooth.org. */
-#define APP_MAJOR_VALUE                 0x42, 0x42                         /**< Major value used to identify Beacons. */
+#define APP_MAJOR_VALUE                 0x21, 0x21                         /**< Major value used to identify Beacons. */
 #define APP_MINOR_VALUE                 0x03, 0x04                         /**< Minor value used to identify Beacons. */
 #define APP_BEACON_UUID                 0x01, 0x12, 0x23, 0x34, \
                                         0x45, 0x56, 0x67, 0x78, \
@@ -225,12 +225,13 @@ void on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
     switch (p_ble_evt->header.evt_id)
     {
         // Upon terminated advertising (time-out), the next advertising mode is started.
-        case BLE_GAP_EVT_ADV_SET_TERMINATED:
-        case BLE_GAP_EVT_TIMEOUT: // TODO check which of the two (above) are necessary
+        case BLE_GAP_EVT_TIMEOUT:
             bsp_board_led_invert(BSP_BOARD_LED_1);
             if (current_alarm == ALARM_0) {
                 advertising_start(ALARM_1);
-            }
+            } else {
+                current_alarm = ALARM_SENTINEL;
+	    }
             break;
         default:
             break;
