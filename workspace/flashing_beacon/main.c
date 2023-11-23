@@ -41,9 +41,12 @@
 #define UICR_ADDRESS                    0x10001080                         /**< Address of the UICR register used by this example. The major and minor versions to be encoded into the advertising data will be picked up from this location. */
 #endif
 
+void on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
+
 BLE_TPS_DEF(m_tps);                                     /**< TX Power service instance. */
 
-typedef enum {ALARM_0, ALARM_1, NUM_ALARMS} Alarm_t;
+typedef enum {ALARM_0, ALARM_1, ALARM_SENTINEL} Alarm_t;
+volatile Alarm_t current_alarm = ALARM_SENTINEL;
 
 /**< Parameters to be passed to the stack when starting advertising. */
 static ble_gap_adv_params_t m_adv_params;
@@ -119,6 +122,9 @@ static void ble_stack_init(void)
     // Enable BLE stack.
     err_code = nrf_sdh_ble_enable(&ram_start);
     APP_ERROR_CHECK(err_code);
+
+    // register a handler for BLE advertisement events
+    NRF_SDH_BLE_OBSERVER(m_advertising_ble_observer, BLE_ADV_BLE_OBSERVER_PRIO, on_ble_evt, NULL);
 }
 
 
@@ -147,7 +153,7 @@ static void setup_ble_advertising_parameters(void)
 
 /**@brief Function for starting advertising.
  */
-static void advertising_start(Alarm_t alarm)
+static void advertising_start(Alarm_t alarm_to_start)
 {
     ret_code_t err_code;
 
@@ -155,7 +161,7 @@ static void advertising_start(Alarm_t alarm)
         ble_advdata_manuf_data_t manuf_specific_data;
         manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
         manuf_specific_data.data.p_data = (uint8_t *) m_beacon_info;
-        m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO] = (uint8_t)alarm; // encode alarm type using APP_MAJOR_VALUE
+        m_beacon_info[MAJ_VAL_OFFSET_IN_BEACON_INFO] = (uint8_t)alarm_to_start; // encode alarm type using APP_MAJOR_VALUE
         manuf_specific_data.data.size   = APP_BEACON_INFO_LENGTH;
 
         ble_advdata_t advdata;
@@ -176,6 +182,8 @@ static void advertising_start(Alarm_t alarm)
 
     err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
     APP_ERROR_CHECK(err_code);
+
+    current_alarm = alarm_to_start;
 }
 
 /**
@@ -206,34 +214,28 @@ static void setup_ble_advertisement_data(ble_advdata_t * p_advdata)
 
 
 /**
- * @brief Function for handling advertising events.
+ * @brief Function for handling BLE events.
  *
  * @details This function is called for advertising events which are passed to the application.
  *
- * @param[in] ble_adv_evt  Advertising event.
+ * @param[in] p_ble_evt  Advertising event. Refer to BLE_GAP_EVTS under softdevice/s140/headers/ble_gap.h
  */
-/**
-static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
+void on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
 {
-    uint32_t err_code;
-
-    switch (ble_adv_evt)
+    switch (p_ble_evt->header.evt_id)
     {
-        case BLE_ADV_EVT_FAST:
-            err_code = app_timer_start(m_blink_ble,
-                                       APP_TIMER_TICKS(LED_BLINK_INTERVAL),
-                                       (void *) LED_BLE_NUS_CONN);
-            APP_ERROR_CHECK(err_code);
-            break;
-        case BLE_ADV_EVT_IDLE:
-            NRF_LOG_INFO("Advertising timeout, restarting.")
-            advertising_start();
+        // Upon terminated advertising (time-out), the next advertising mode is started.
+        case BLE_GAP_EVT_ADV_SET_TERMINATED:
+        case BLE_GAP_EVT_TIMEOUT: // TODO check which of the two (above) are necessary
+            bsp_board_led_invert(BSP_BOARD_LED_1);
+            if (current_alarm == ALARM_0) {
+                advertising_start(ALARM_1);
+            }
             break;
         default:
             break;
     }
 }
-**/
 
 
 /**@brief Function for handling advertising events.
@@ -294,7 +296,9 @@ int main(void)
     tps_init();
 
     // Start execution.
-    advertising_start(ALARM_0);
+    if (current_alarm == ALARM_SENTINEL) {
+        advertising_start(ALARM_0);
+    }
 
     while (true) {
 
